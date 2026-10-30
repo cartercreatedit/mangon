@@ -3,150 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Athena Matrix Console</title>
+    <title>Athena Node Matrix</title>
     <style>
         @import url('https://googleapis.com');
 
         html, body {
             width: 100%; height: 100%; margin: 0; padding: 0;
-            background-color: #06060c; color: #d8d8d8;
-            font-family: 'Oswald', sans-serif; overflow-x: hidden; user-select: none;
+            background-color: #030307; color: #e3e3e3;
+            font-family: 'Roboto', sans-serif; overflow-x: hidden; user-select: none;
         }
 
-        /* ── INTERFACE TOP CONTROL BAR ── */
+        /* ── NATIVE CHROME NOTIFICATION POPUP BOX MIMIC ── */
+        #notification-gate {
+            position: fixed; top: 12px; left: 100px;
+            width: 290px; background-color: #1e1e1e;
+            border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.6);
+            z-index: 5000; padding: 16px; box-sizing: border-box;
+            border: 1px solid #333333; font-size: 13px; color: #ffffff;
+            display: flex; flex-direction: column; gap: 12px;
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .notif-header { font-weight: 500; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+        .notif-close { cursor: pointer; color: #888; font-size: 16px; }
+        .notif-close:hover { color: #fff; }
+        .notif-btns { display: flex; justify-content: flex-end; gap: 8px; }
+        .btn-action {
+            background-color: #2b2b2b; border: 1px solid #444; color: white;
+            padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 12px;
+        }
+        .btn-action.primary { background-color: #0078d4; border-color: #0078d4; }
+        .btn-action:hover { filter: brightness(1.2); }
+
+        /* ── PREMIUM NAV CONTROLS UTILITY BAR ── */
         header {
-            width: 100%; height: 70px; background-color: #0c0c16;
-            border-bottom: 2px solid #16162a; display: flex;
+            width: 100%; height: 65px; background-color: #08080f;
+            border-bottom: 1px solid #121222; display: flex;
             align-items: center; justify-content: space-between;
-            padding: 0 40px; box-sizing: border-box;
+            padding: 0 24px; box-sizing: border-box;
             position: fixed; top: 0; left: 0; z-index: 1000;
         }
-        .brand-node { font-size: 26px; font-weight: 700; letter-spacing: 1px; color: #ffffff; }
-        .brand-node span { color: #00ffcc; }
+        .brand-cluster { display: flex; align-items: center; gap: 8px; font-family: 'Oswald', sans-serif; font-size: 24px; font-weight: 700; color: #ffffff; }
+        .brand-icon { width: 24px; height: 24px; background-color: #00ff66; border-radius: 50%; box-shadow: 0 0 10px #00ff66; }
+        .brand-cluster span { color: #00ff66; font-size: 14px; margin-left: 10px; background: rgba(0,255,102,0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(0,255,102,0.2); }
         
+        .telemetry-deck { display: flex; align-items: center; gap: 15px; font-size: 13px; color: #888aa0; }
+        .telemetry-node { background-color: #0f0f1b; border: 1px solid #1a1a30; padding: 4px 12px; border-radius: 15px; display: flex; align-items: center; gap: 6px; }
+        .telemetry-node span { color: #00ffcc; font-weight: bold; }
+
         .search-console {
-            width: min(380px, 45vw); background-color: #121226;
-            border: 1px solid #20203d; border-radius: 20px;
-            padding: 8px 18px; display: flex; align-items: center;
+            width: 320px; background-color: #0d0d18;
+            border: 1px solid #1c1c35; border-radius: 18px;
+            padding: 6px 16px; display: flex; align-items: center;
         }
         .search-console input {
             width: 100%; background: transparent; border: none;
-            outline: none; color: #ffffff; font-size: 15px; font-family: inherit;
+            outline: none; color: #ffffff; font-size: 14px; font-family: inherit;
         }
 
-        /* ── RESPONSE CATALOG GRID ── */
+        /* ── DENSE EXTENSIVE GAME CARD MATRIX GRID ── */
         .workspace-container {
-            max-width: 1200px; margin: 110px auto 40px auto;
-            padding: 0 25px; box-sizing: border-box;
+            max-width: 1400px; margin: 95px auto 40px auto;
+            padding: 0 24px; box-sizing: border-box;
         }
+        .sort-metadata { display: flex; justify-content: flex-end; font-size: 12px; color: #6b6d85; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
         .grid-matrix {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px;
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+            gap: 16px;
         }
         .card-node {
-            background-color: #0f0f1f; border: 1px solid #1a1a36; border-radius: 16px;
-            overflow: hidden; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background-color: #090911; border: 1px solid #121224; border-radius: 12px;
+            overflow: hidden; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative; aspect-ratio: 1 / 1; display: flex;
-            flex-direction: column; justify-content: flex-end; padding: 20px; box-sizing: border-box;
+            flex-direction: column; justify-content: flex-end; padding: 12px; box-sizing: border-box;
         }
         .card-node:hover {
-            transform: translateY(-6px); border-color: #00ffcc;
-            box-shadow: 0 12px 30px rgba(0, 255, 204, 0.2);
+            transform: translateY(-4px); border-color: #00ff66;
+            box-shadow: 0 10px 24px rgba(0, 255, 102, 0.15);
         }
         .card-meta-title {
-            font-size: 20px; font-weight: 700; color: #ffffff;
+            font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 500; color: #ffffff;
             text-transform: uppercase; letter-spacing: 0.5px; z-index: 2;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+            text-shadow: 0 2px 4px rgba(0,0,0,1), 0 1px 2px rgba(0,0,0,1);
+            line-height: 1.2;
+        }
+        /* Top right card badge tracking circle */
+        .badge-star {
+            position: absolute; top: 10px; right: 10px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background-color: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: #00ff66; z-index: 5;
         }
 
         /* ── INTERACTIVE CANVAS VIEW SCREEN ── */
         #game-theater {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #000000; z-index: 2000; display: none;
+            background-color: #000000; z-index: 6000; display: none;
         }
         .theater-bar {
-            width: 100%; height: 55px; background-color: #0c0c16;
-            display: flex; align-items: center; padding: 0 25px;
-            box-sizing: border-box; border-bottom: 2px solid #16162a;
+            width: 100%; height: 50px; background-color: #08080f;
+            display: flex; align-items: center; padding: 0 20px;
+            box-sizing: border-box; border-bottom: 1px solid #121222;
         }
         .btn-exit {
-            background-color: #1f1f38; border: none; color: white;
-            font-family: inherit; padding: 8px 20px; border-radius: 8px;
-            cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.15s;
+            background-color: #1a1a2e; border: none; color: white;
+            font-family: inherit; padding: 6px 16px; border-radius: 6px;
+            cursor: pointer; font-weight: bold; font-size: 13px; transition: background 0.15s;
         }
         .btn-exit:hover { background-color: #ff3344; }
-        iframe { width: 100%; height: calc(100% - 55px); border: none; background-color: #000000; }
+        iframe { width: 100%; height: calc(100% - 50px); border: none; background-color: #000000; }
     </style>
 </head>
 <body>
 
+    <!-- CHROMIUM NOTIFICATION INTERCEPT MATRIX -->
+    <div id="notification-gate">
+        <div class="notif-header">
+            <span>athena-node wants to</span>
+            <span class="notif-close" onclick="closeNotif()">×</span>
+        </div>
+        <div style="color: #bbb; font-size: 12px; margin-top: -4px;">🔕 Show notifications</div>
+        <div class="notif-btns">
+            <button class="btn-action" onclick="closeNotif()">Block</button>
+            <button class="btn-action primary" onclick="closeNotif()">Allow</button>
+        </div>
+    </div>
+
+    <!-- CONTROL PANEL HEADER -->
     <header>
-        <div class="brand-node">✦ ATHENA<span>NODE</span></div>
-        <div class="search-console">
-            <input type="text" id="search-input" placeholder="Filter platform catalog...">
+        <div class="brand-cluster">
+            <div class="brand-icon"></div>
+            kiwi <span>unblocked</span>
+        </div>
+        
+        <div class="telemetry-deck">
+            <div class="telemetry-node">🕒 <span id="clock-node">19:20</span></div>
+            <div class="telemetry-node">☀️ <span>66°F</span></div>
+            <div class="telemetry-node">📶 <span>306 ms</span></div>
+            <div class="telemetry-node">🔋 <span>24%</span></div>
+            
+            <div class="search-console">
+                <input type="text" id="search-input" placeholder="Search unblocked framework...">
+            </div>
         </div>
     </header>
 
+    <!-- MAIN DISPLAY PLATFORM CONTAINER -->
     <div class="workspace-container">
+        <div class="sort-metadata">Sort: <b>Most Relevant ▾</b></div>
+        
         <div class="grid-matrix" id="catalog-grid">
             
-            <!-- Functional, Unblocked Static Open-Source Game Nodes -->
-            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://mathstudy.dev')">
-                <div class="card-meta-title">Slope OG</div>
+            <!-- ROW 1 DIRECTORY -->
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 100%), url('https://unsplash.com') center/cover;" onclick="launchGame('https://mathstudy.dev')">
+                <div class="badge-star">★</div><div class="card-meta-title">Slope</div>
             </div>
-            
-            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://googleusercontent.com')">
-                <div class="card-meta-title">Geometry Dash</div>
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 100%), url('https://unsplash.com') center/cover;" onclick="launchGame('https://googleusercontent.com')">
+                <div class="badge-star">★</div><div class="card-meta-title">Geometry Dash</div>
             </div>
-            
-            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://mathstudy.dev')">
-                <div class="card-meta-title">Tunnel Rush</div>
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 100%), url('https://unsplash.com') center/cover;" onclick="launchGame('https://mathstudy.dev')">
+                <div class="badge-star">★</div><div class="card-meta-title">Tunnel Rush</div>
             </div>
-            
-            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://jsdelivr.net')">
-                <div class="card-meta-title">Retro Bowl</div>
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 100%), url('https://unsplash.com') center/cover;" onclick="launchGame('https://jsdelivr.net')">
+                <div class="badge-star">★</div><div class="card-meta-title">Retro Bowl</div>
             </div>
-            
-        </div>
-    </div>
-
-    <div id="game-theater">
-        <div class="theater-bar">
-            <button class="btn-exit" onclick="closeTheater()">✕ Close Session</button>
-        </div>
-        <iframe id="game-frame" src=""></iframe>
-    </div>
-
-    <script>
-        const searchBar = document.getElementById('search-input');
-        if (searchBar) {
-            searchBar.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                const cards = document.querySelectorAll('.card-node');
-                cards.forEach(card => {
-                    const label = card.textContent.toLowerCase();
-                    card.style.display = label.includes(query) ? 'flex' : 'none';
-                });
-            });
-        }
-
-        function launchGame(url) {
-            const viewport = document.getElementById('game-theater');
-            const targetFrame = document.getElementById('game-frame');
-            if (viewport && targetFrame) {
-                targetFrame.src = url;
-                viewport.style.display = 'block';
-            }
-        }
-
-        function closeTheater() {
-            const viewport = document.getElementById('game-theater');
-            const targetFrame = document.getElementById('game-frame');
-            if (viewport && targetFrame) {
-                viewport.style.display = 'none';
-                targetFrame.src = '';
-            }
-        }
-    </script>
-</body>
-</html>
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 100%), url('https://unsplash.com') center/cover;" onclick="launchGame('https://gamedistribution.com')">
+                <div class="badge-star">★</div><div class="card-meta-title">Subway Surfers</div>
+            </div>
