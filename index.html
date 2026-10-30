@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athena Matrix Console</title>
+    <style>
+        @import url('https://googleapis.com');
+
+        html, body {
+            width: 100%; height: 100%; margin: 0; padding: 0;
+            background-color: #06060c; color: #d8d8d8;
+            font-family: 'Oswald', sans-serif; overflow-x: hidden; user-select: none;
+        }
+
+        /* ── INTERFACE TOP CONTROL BAR ── */
+        header {
+            width: 100%; height: 70px; background-color: #0c0c16;
+            border-bottom: 2px solid #16162a; display: flex;
+            align-items: center; justify-content: space-between;
+            padding: 0 40px; box-sizing: border-box;
+            position: fixed; top: 0; left: 0; z-index: 1000;
+        }
+        .brand-node { font-size: 26px; font-weight: 700; letter-spacing: 1px; color: #ffffff; }
+        .brand-node span { color: #00ffcc; }
+        
+        .search-console {
+            width: min(380px, 45vw); background-color: #121226;
+            border: 1px solid #20203d; border-radius: 20px;
+            padding: 8px 18px; display: flex; align-items: center;
+        }
+        .search-console input {
+            width: 100%; background: transparent; border: none;
+            outline: none; color: #ffffff; font-size: 15px; font-family: inherit;
+        }
+
+        /* ── RESPONSE CATALOG GRID ── */
+        .workspace-container {
+            max-width: 1200px; margin: 110px auto 40px auto;
+            padding: 0 25px; box-sizing: border-box;
+        }
+        .grid-matrix {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px;
+        }
+        .card-node {
+            background-color: #0f0f1f; border: 1px solid #1a1a36; border-radius: 16px;
+            overflow: hidden; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; aspect-ratio: 1 / 1; display: flex;
+            flex-direction: column; justify-content: flex-end; padding: 20px; box-sizing: border-box;
+        }
+        .card-node:hover {
+            transform: translateY(-6px); border-color: #00ffcc;
+            box-shadow: 0 12px 30px rgba(0, 255, 204, 0.2);
+        }
+        .card-meta-title {
+            font-size: 20px; font-weight: 700; color: #ffffff;
+            text-transform: uppercase; letter-spacing: 0.5px; z-index: 2;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+        }
+
+        /* ── INTERACTIVE CANVAS VIEW SCREEN ── */
+        #game-theater {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000000; z-index: 2000; display: none;
+        }
+        .theater-bar {
+            width: 100%; height: 55px; background-color: #0c0c16;
+            display: flex; align-items: center; padding: 0 25px;
+            box-sizing: border-box; border-bottom: 2px solid #16162a;
+        }
+        .btn-exit {
+            background-color: #1f1f38; border: none; color: white;
+            font-family: inherit; padding: 8px 20px; border-radius: 8px;
+            cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.15s;
+        }
+        .btn-exit:hover { background-color: #ff3344; }
+        iframe { width: 100%; height: calc(100% - 55px); border: none; background-color: #000000; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-node">✦ ATHENA<span>NODE</span></div>
+        <div class="search-console">
+            <input type="text" id="search-input" placeholder="Filter platform catalog...">
+        </div>
+    </header>
+
+    <div class="workspace-container">
+        <div class="grid-matrix" id="catalog-grid">
+            
+            <!-- Functional, Unblocked Static Open-Source Game Nodes -->
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://mathstudy.dev')">
+                <div class="card-meta-title">Slope OG</div>
+            </div>
+            
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://googleusercontent.com')">
+                <div class="card-meta-title">Geometry Dash</div>
+            </div>
+            
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://mathstudy.dev')">
+                <div class="card-meta-title">Tunnel Rush</div>
+            </div>
+            
+            <div class="card-node" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent), url('https://unsplash.com') center/cover;" onclick="launchGame('https://jsdelivr.net')">
+                <div class="card-meta-title">Retro Bowl</div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div id="game-theater">
+        <div class="theater-bar">
+            <button class="btn-exit" onclick="closeTheater()">✕ Close Session</button>
+        </div>
+        <iframe id="game-frame" src=""></iframe>
+    </div>
+
+    <script>
+        const searchBar = document.getElementById('search-input');
+        if (searchBar) {
+            searchBar.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.card-node');
+                cards.forEach(card => {
+                    const label = card.textContent.toLowerCase();
+                    card.style.display = label.includes(query) ? 'flex' : 'none';
+                });
+            });
+        }
+
+        function launchGame(url) {
+            const viewport = document.getElementById('game-theater');
+            const targetFrame = document.getElementById('game-frame');
+            if (viewport && targetFrame) {
+                targetFrame.src = url;
+                viewport.style.display = 'block';
+            }
+        }
+
+        function closeTheater() {
+            const viewport = document.getElementById('game-theater');
+            const targetFrame = document.getElementById('game-frame');
+            if (viewport && targetFrame) {
+                viewport.style.display = 'none';
+                targetFrame.src = '';
+            }
+        }
+    </script>
+</body>
+</html>
